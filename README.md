@@ -1,5 +1,7 @@
 # @apacejs/jwt
 
+simple jwt authentication for apacejs
+
 ### jwt.sign()
 
 ``` js
@@ -21,19 +23,13 @@ app.post('/login', (req, res) => {
 
 It's a express middleware.
 
-**Base Uasge**
-
-``` js
-const jwt = require('@apacejs/jwt')
-
-app.use(jwt.verify())
-```
-
-**WhiteList**
+**Use in Express**
 
 You can set interface whitelist, which will not do authentication.
 
 ``` js
+const express = require('express')
+cosnt app = express()
 const jwt = require('@apacejs/jwt')
 
 const whiteList = [

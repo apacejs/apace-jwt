@@ -1,12 +1,13 @@
 {
   "name": "@apacejs/jwt",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.4",
   "description": "simple jwt authentication for apacejs",
   "main": "lib/index.js",
   "types": "index.d.ts",
   "scripts": {
     "ts:build": "shx rm -rf lib && tsc",
     "dev": "tsc -w",
+    "release": "npm publish --access=public",
     "test": "nodemon test/index"
   },
   "files": [
@@ -17,7 +18,7 @@
     "jwt",
     "apacejs"
   ],
-  "author": "",
+  "author": "dkvirus",
   "license": "ISC",
   "dependencies": {
     "http-status-codes": "^1.4.0",
@@ -33,5 +34,17 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
-  }
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/apacejs/apace-jwt.git"
+  },
+  "bugs": {
+    "url": "https://github.com/apacejs/apace-jwt/issues"
+  },
+  "homepage": "https://github.com/apacejs/apace-jwt#readme"
 }

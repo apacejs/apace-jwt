@@ -6,9 +6,11 @@ const secretKey = 'apace-jwt'
 
 interface ISignOpts {
     expiresIn: string | number;
+    [key: string]: any;
 }
 
-function sign(payload: { [key: string]: any }, { expiresIn = '1h' }: ISignOpts): string {
+function sign(payload: { [key: string]: any }, opts: ISignOpts = { expiresIn: '1h' }): string {
+    const { expiresIn } = opts
     try {
         const token = jwt.sign(payload, secretKey, { expiresIn })
         return token
@@ -41,24 +43,62 @@ function sign(payload: { [key: string]: any }, { expiresIn = '1h' }: ISignOpts):
  *      { url: '/book/*', method: 'PUT' }
  * ]
  */
-interface IWhiteList {
-    url: string;
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'PATCH'
-}
-interface IVerifyOpts {
-    whiteList: string | IWhiteList[];
+interface IList {
+    url?: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'PATCH' | '*'
 }
 
-function verify({ whiteList = '*' }: IVerifyOpts) {
+interface IVerifyOpts {
+    whiteList: string | IList[];
+    blackList: IList[];
+}
+
+function verify({ whiteList = '*', blackList = [] }: IVerifyOpts) {
     return function (req: Request & { jwt: object }, res: Response, next: NextFunction) {
+        // header 中拿 token
+        const authorization = req.headers.authorization
+
+        if (authorization) {
+            try {
+                const token = authorization.split(' ').pop() || ''
+                const result = jwt.verify(token, secretKey) as object
+                req.jwt = result   // 加密字段存入 req.jwt 对象中
+            } catch (e) {
+                return res.status(HttpStatus.UNAUTHORIZED).json({
+                    code: HttpStatus.UNAUTHORIZED,
+                    message: e.message,
+                })
+            }
+
+            return next()
+        }
+
+        // BlackList
+        const { url, method } = req
+        for (let routeObj of blackList) {
+            routeObj.url = routeObj.url || '*'
+            routeObj.method = routeObj.method || '*'
+            if (
+                (routeObj.url === url || routeObj.url === '*' || patternMatch(routeObj.url, url)) &&
+                (equality(routeObj.method, method) || equality(routeObj.method, '*'))
+            ) {
+                return res.status(HttpStatus.UNAUTHORIZED)
+                    .json({
+                        code: HttpStatus.UNAUTHORIZED,
+                        message: HttpStatus.getStatusText(HttpStatus.UNAUTHORIZED),
+                    })
+            }
+        }
+
         // WhiteList
         if (typeof whiteList === 'string') {
             if (whiteList === '*') {
                 return next()
             }
         } else if (Array.isArray(whiteList)) {
-            const { url, method } = req
             for (let routeObj of whiteList) {
+                routeObj.url = routeObj.url || '*'
+                routeObj.method = routeObj.method || '*'
                 if (
                     (routeObj.url === url || routeObj.url === '*' || patternMatch(routeObj.url, url)) &&
                     (equality(routeObj.method, method) || equality(routeObj.method, '*'))
@@ -75,28 +115,11 @@ function verify({ whiteList = '*' }: IVerifyOpts) {
                 })
         }
 
-        // header 中拿 token
-        const authorization = req.headers.authorization
-        if (!authorization) {
-            return res.status(HttpStatus.UNAUTHORIZED)
-                .json({
-                    code: HttpStatus.UNAUTHORIZED,
-                    message: HttpStatus.getStatusText(HttpStatus.UNAUTHORIZED),
-                })
-        }
-
-        try {
-            const token = authorization.split(' ').pop() || ''
-            const result = jwt.verify(token, secretKey) as object
-            req.jwt = result   // 加密字段存入 req.jwt 对象中
-        } catch (e) {
-            return res.status(HttpStatus.UNAUTHORIZED).json({
+        return res.status(HttpStatus.UNAUTHORIZED)
+            .json({
                 code: HttpStatus.UNAUTHORIZED,
-                message: e.message,
+                message: HttpStatus.getStatusText(HttpStatus.UNAUTHORIZED),
             })
-        }
-
-        next()
     }
 }
 

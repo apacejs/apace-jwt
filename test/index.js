@@ -3,11 +3,14 @@ const app = express()
 
 const jwt = require('../lib/index')
 
-app.use(jwt.verify({ whiteList: [{ url: '/books/*', method: 'GET' }] }))
+app.use(jwt.verify({
+    whiteList: [{ url: '/login', method: '*' }],
+    blackList: [{ url: '/book/*', method: 'GET' }]
+}))
 
 app.get('/login', (req, res) => {
     try {
-        const token = jwt.sign({ username: 'dkvirus' })
+        const token = jwt.sign({ username: 'hello dk' })
         res.json({ token })
     } catch (e) {
         res.status(500).json({
@@ -18,12 +21,10 @@ app.get('/login', (req, res) => {
 })
 
 app.get('/books/:id', (req, res) => {
-    const { id } = req.params
-    console.log('id', id)
-
     res.json({
-        message: 'url is /books/:id'
+        jwt: req.jwt,
+        id: req.params.id,
     })
 })
 
-app.listen(8200, () => console.log('server is start on listen: 8200'))
+app.listen(31000, () => console.log('server is start on listen: 31000'))

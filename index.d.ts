@@ -5,12 +5,13 @@ interface ISignOpts {
 
 declare type sign = (payload: { [key: string]: any }, opts: ISignOpts) => string;
 
-interface IWhiteList {
-    url: string;
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'PATCH'
+interface IList {
+    url?: string;
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS' | 'PATCH' | '*'
 }
 interface IVerifyOpts {
-    whiteList: string | IWhiteList[];
+    whiteList: string | IList[];
+    blackList: IList[];
 }
 
-declare type verify = ({ whiteList }: IVerifyOpts) => void; 
+declare type verify = (opts: IVerifyOpts) => void; 
