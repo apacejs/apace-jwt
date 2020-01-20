@@ -56,6 +56,13 @@ const whiteList = [
  *      { url: '*', method: 'GET' },
  *      { url: '/oauth', method: 'POST' },
  * ]
+ * 
+ * e.g.4 Setting dynamic routing does not do authentication（设置动态路由不做认证）
+ * whiteList = [
+ *      // /book/1
+ *      // /book/2
+ *      { url: '/book/*', method: 'PUT' }
+ * ]
  */
 app.use(jwt.verify({ whiteList: whiteList }))
 
