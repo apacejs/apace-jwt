@@ -11,6 +11,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "exclude": [
-    "test"
+    "test",
+    "examples"
   ]
 }
