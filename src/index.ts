@@ -2,17 +2,15 @@ import jwt from 'jsonwebtoken'
 import HttpStatus from 'http-status-codes'
 import { Request, Response, NextFunction } from 'express'
 
-const secretKey = 'apace-jwt'
-
-interface ISignOpts {
-    expiresIn: string | number;
-    [key: string]: any;
+export default {
+    sign, verify
 }
 
-function sign(payload: { [key: string]: any }, opts: ISignOpts = { expiresIn: '1h' }): string {
-    const { expiresIn } = opts
+const secretKey = 'apace-jwt'
+
+function sign(payload: { [key: string]: any }, opts?: { expiresIn?: string | number; }): string {
     try {
-        const token = jwt.sign(payload, secretKey, { expiresIn })
+        const token = jwt.sign(payload, secretKey, { expiresIn: opts?.expiresIn || '1h' })
         return token
     } catch (e) {
         throw new Error(e.message)
@@ -123,6 +121,12 @@ function verify({ whiteList = '*', blackList = [] }: IVerifyOpts) {
     }
 }
 
+/**
+ * 将两个字符串全部转小写，比较值是否相同
+ * 
+ * @param a 第一个字符串
+ * @param b 第二个字符串
+ */
 function equality(a: string, b: string): boolean {
     return String(a).toLowerCase() === String(b).toLowerCase()
 }
@@ -132,18 +136,14 @@ function equality(a: string, b: string): boolean {
  * reqUrl = req.url
  * 
  * e.g.1
- * regexUrl = '/user/*'
- * reqUrl = '/user/1'
+ * const regexUrl = '/user/*'
+ * const reqUrl = '/user/1'
  * patternMatch(regexUrl, reqUrl)   // true
  */
 function patternMatch(regexUrl: string, reqUrl: string): boolean {
     // 去除末尾斜杠
-    if (regexUrl[regexUrl.length - 1] === '/') {
-        regexUrl = regexUrl.substring(0, regexUrl.length - 1)
-    }
-    if (reqUrl[reqUrl.length - 1] === '/') {
-        reqUrl = reqUrl.substring(0, reqUrl.length - 1)
-    }
+    regexUrl = removeLastSlashIfExist(regexUrl)
+    reqUrl = removeLastSlashIfExist(reqUrl)
 
     const regexUrlArr = regexUrl.split('/')
     const reqUrlArr = reqUrl.split('/')
@@ -160,5 +160,17 @@ function patternMatch(regexUrl: string, reqUrl: string): boolean {
     return true
 }
 
-exports.sign = sign
-exports.verify = verify
+/**
+ * 删除路径最后的斜线
+ * 
+ * @param path 文件路径 
+ */
+function removeLastSlashIfExist(path: string) {
+    if (!path) return ''
+
+    if (path[path.length - 1] === '/') {
+        path = path.substring(0, path.length - 1)
+    }
+
+    return path
+}
